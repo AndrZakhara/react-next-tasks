@@ -1,6 +1,5 @@
 // ================================
 // Event Loop — Live Coding Tasks
-// Middle + Senior
 // ================================
 
 // Task: 1, Promise vs setTimeout
@@ -86,10 +85,6 @@ Promise.resolve()
   })
   .then(() => console.log("ok"))
   .catch(() => console.log("caught"));
-
-// ================================
-// Senior Level
-// ================================
 
 // Task: 11, setTimeout vs setImmediate (Node)
 // Expected: Explain why execution order is not guaranteed

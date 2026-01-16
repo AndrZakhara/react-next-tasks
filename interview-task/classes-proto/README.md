@@ -1241,4 +1241,268 @@ car.drive();
 - [ ] I understand multiple levels of inheritance
 - [ ] I know how to inherit from built-in types
 - [ ] I can implement mixins for multiple inheritance
-- [ ]
+- [ ] I understand when to prefer composition over inheritance
+
+### Combined Understanding
+
+- [ ] I can explain how classes use prototypes under the hood
+- [ ] I can convert between constructor functions and classes
+- [ ] I understand the complete prototype chain for class instances
+- [ ] I know how static methods relate to the prototype
+- [ ] I can debug prototype-related issues
+- [ ] I understand performance implications of different patterns
+
+### Testing Your Knowledge
+
+**Challenge 1**: What will this output?
+
+```javascript
+function Animal(name) {
+  this.name = name;
+}
+
+Animal.prototype.species = "Unknown";
+
+const cat = new Animal("Whiskers");
+const dog = new Animal("Rex");
+
+cat.species = "Feline";
+
+console.log(cat.species);
+console.log(dog.species);
+console.log(Animal.prototype.species);
+```
+
+<details>
+<summary>Click to see the answer</summary>
+
+```
+Feline
+Unknown
+Unknown
+```
+
+**Explanation**:
+
+- `cat.species = 'Feline'` creates a new property on `cat` (shadowing)
+- `dog.species` still reads from the prototype (no own property)
+- Prototype remains unchanged
+</details>
+
+**Challenge 2**: Fix the inheritance
+
+```javascript
+function Animal(name) {
+  this.name = name;
+}
+
+Animal.prototype.speak = function () {
+  console.log(`${this.name} makes a sound`);
+};
+
+function Dog(name, breed) {
+  this.name = name;
+  this.breed = breed;
+}
+
+Dog.prototype.bark = function () {
+  console.log(`${this.name} barks`);
+};
+
+const dog = new Dog("Rex", "Labrador");
+dog.bark(); // Works
+dog.speak(); // ERROR - not defined
+```
+
+<details>
+<summary>Click to see the solution</summary>
+
+```javascript
+function Dog(name, breed) {
+  Animal.call(this, name); // Call parent constructor
+  this.breed = breed;
+}
+
+// Set up inheritance
+Dog.prototype = Object.create(Animal.prototype);
+Dog.prototype.constructor = Dog;
+
+Dog.prototype.bark = function () {
+  console.log(`${this.name} barks`);
+};
+
+const dog = new Dog("Rex", "Labrador");
+dog.bark(); // "Rex barks"
+dog.speak(); // "Rex makes a sound"
+```
+
+**What was missing**:
+
+1. Calling parent constructor with `Animal.call(this, name)`
+2. Setting up prototype chain with `Object.create(Animal.prototype)`
+3. Restoring constructor reference
+</details>
+
+**Challenge 3**: Predict the prototype chain
+
+```javascript
+class A {}
+class B extends A {}
+class C extends B {}
+
+const instance = new C();
+
+// What is the prototype chain?
+```
+
+<details>
+<summary>Click to see the answer</summary>
+
+```
+instance
+  → C.prototype
+  → B.prototype
+  → A.prototype
+  → Object.prototype
+  → null
+```
+
+**How to verify**:
+
+```javascript
+console.log(Object.getPrototypeOf(instance) === C.prototype); // true
+console.log(Object.getPrototypeOf(C.prototype) === B.prototype); // true
+console.log(Object.getPrototypeOf(B.prototype) === A.prototype); // true
+console.log(Object.getPrototypeOf(A.prototype) === Object.prototype); // true
+console.log(Object.getPrototypeOf(Object.prototype) === null); // true
+```
+
+</details>
+
+**Challenge 4**: What's the output?
+
+```javascript
+class Parent {
+  constructor() {
+    this.name = "Parent";
+  }
+
+  getName() {
+    return this.name;
+  }
+}
+
+class Child extends Parent {
+  constructor() {
+    super();
+    this.name = "Child";
+  }
+}
+
+const child = new Child();
+console.log(child.getName());
+console.log(Object.getPrototypeOf(child).getName());
+```
+
+<details>
+<summary>Click to see the answer</summary>
+
+```
+Child
+undefined
+```
+
+**Explanation**:
+
+- `child.getName()` - `this` refers to `child` instance, which has `name = 'Child'`
+- `Object.getPrototypeOf(child).getName()` - `this` refers to `Child.prototype`, which doesn't have a `name` property
+
+**Important**: The method is on the prototype, but `this` depends on how it's called!
+
+</details>
+
+**Challenge 5**: Understanding private fields
+
+```javascript
+class Counter {
+  #count = 0;
+
+  increment() {
+    this.#count++;
+  }
+
+  getCount() {
+    return this.#count;
+  }
+}
+
+const counter = new Counter();
+counter.increment();
+
+// Will this work?
+const obj = { getCount: counter.getCount };
+console.log(obj.getCount());
+```
+
+<details>
+<summary>Click to see the answer</summary>
+
+**ERROR**: `TypeError: Cannot read private member #count from an object whose class did not declare it`
+
+**Explanation**: Private fields are tied to the class instance. When you call `obj.getCount()`, `this` becomes `obj`, which doesn't have the private `#count` field.
+
+**Fix**:
+
+```javascript
+const obj = { getCount: counter.getCount.bind(counter) };
+// OR
+const getCount = () => counter.getCount();
+```
+
+</details>
+
+---
+
+## Resources
+
+### Official Documentation
+
+- [MDN: Object Prototypes](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/Object_prototypes)
+- [MDN: Inheritance and the Prototype Chain](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Inheritance_and_the_prototype_chain)
+- [MDN: Classes](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes)
+- [MDN: Object.create()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/create)
+- [MDN: Object.getPrototypeOf()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/getPrototypeOf)
+
+### In-Depth Articles
+
+- [You Don't Know JS: this & Object Prototypes](https://github.com/getify/You-Dont-Know-JS/blob/1st-ed/this%20%26%20object%20prototypes/README.md)
+- [JavaScript.info: Prototypes, inheritance](https://javascript.info/prototypes)
+- [JavaScript.info: Classes](https://javascript.info/classes)
+- [Understanding Prototypes in JavaScript](https://www.digitalocean.com/community/tutorials/understanding-prototypes-delegation-in-javascript)
+
+### Videos & Tutorials
+
+- [JavaScript Prototype in Plain Language](https://www.youtube.com/watch?v=riDVvXZ_Kb4)
+- [Object Creation in JavaScript](https://www.youtube.com/watch?v=GhbhD1HR5vk)
+- [Prototypes in JavaScript - FunFunFunction](https://www.youtube.com/watch?v=riDVvXZ_Kb4)
+- [ES6 Classes Tutorial](https://www.youtube.com/watch?v=2ZphE5HcQPQ)
+
+### Interactive Learning
+
+- [JavaScript Visualizer - Prototypes](https://www.jsv9000.app/)
+- [Visualizing JavaScript Prototypes](http://www.objectplayground.com/)
+
+### Books
+
+- "You Don't Know JS: this & Object Prototypes" by Kyle Simpson
+- "JavaScript: The Good Parts" by Douglas Crockford
+- "Eloquent JavaScript" by Marijn Haverbeke (Chapter 6)
+
+### Practice
+
+- [JavaScript Prototype Exercises](https://www.freecodecamp.org/learn/javascript-algorithms-and-data-structures/)
+- [Exercism - JavaScript Track](https://exercism.org/tracks/javascript)
+
+---
+
+**Last Updated**: January 2025
